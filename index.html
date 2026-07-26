@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOVE_IT — Делай свой день</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="logo"><span>MOVE_IT</span></div>
+    </header>
+
+    <main>
+        <div>
+            <button class="btn">ДОБАВИТЬ ⭢</button>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-stats">
+                <span id="percentDisplay">0%</span>
+                <span id="fractionDisplay">0 из 0</span>
+            </div>
+            <div class="progress-bar">
+                <div id="progressFill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div id="taskList"></div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

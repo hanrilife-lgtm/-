@@ -1,34 +1,171 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOVE_IT — Делай свой день</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>MOVE_IT — Тёмный трекер</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <header>
-        <div class="logo"><span>MOVE_IT</span></div>
+        <div class="logo">🚀 MOVE_IT</div>
+        <div class="header-actions">
+            <button class="icon-btn glass" id="themeToggle" title="Сменить тему">🌓</button>
+            <button class="icon-btn glass" id="notesBtn" title="Заметки">📝</button>
+            <button class="icon-btn glass" id="foldersBtn" title="Папки">📂</button>
+            <button class="icon-btn glass" id="doneBtn" title="Завершённые">✅</button>
+        </div>
     </header>
 
     <main>
-        <div>
-            <button class="btn">ДОБАВИТЬ ⭢</button>
+        <!-- Дашборд статистики -->
+        <section class="stats-dashboard">
+            <div class="stat-card glass">
+                <span class="stat-label">Сегодня</span>
+                <span class="stat-number" id="todayDone">0</span>
+                <div class="mini-chart" id="todayChart"><div class="bar" style="width:0%"></div></div>
+            </div>
+            <div class="stat-card glass">
+                <span class="stat-label">Неделя</span>
+                <span class="stat-number" id="weekPercentDisplay">0%</span>
+                <div class="progress-ring">
+                    <svg viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="50" stroke="var(--ring-bg)" stroke-width="10" fill="none"/>
+                        <circle cx="60" cy="60" r="50" stroke="url(#grad)" stroke-width="10" fill="none"
+                                stroke-dasharray="314" stroke-dashoffset="314" id="ringFill"/>
+                    </svg>
+                    <defs>
+                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#FF6B6B"/>
+                            <stop offset="100%" stop-color="#FECA57"/>
+                        </linearGradient>
+                    </defs>
+                </div>
+            </div>
+            <div class="stat-card glass">
+                <span class="stat-label">Стрик</span>
+                <span class="stat-number" id="streakDisplay">0🔥</span>
+                <div style="font-size:12px;color:var(--text-muted);">дней подряд</div>
+            </div>
+            <div class="stat-card glass">
+                <span class="stat-label">Всего задач</span>
+                <span class="stat-number" id="totalTasksStat">0</span>
+                <div class="stat-trend" id="trendIndicator">📈</div>
+            </div>
+        </section>
+
+        <!-- Панель управления -->
+        <div class="toolbar glass">
+            <div class="view-switcher">
+                <button class="view-btn active" data-view="day">День</button>
+                <button class="view-btn" data-view="week">Неделя</button>
+                <button class="view-btn" data-view="month">Месяц</button>
+            </div>
+            <div class="date-nav">
+                <button class="nav-btn glass" id="prevDate">‹</button>
+                <span id="currentDateDisplay">Сегодня</span>
+                <button class="nav-btn glass" id="nextDate">›</button>
+                <button class="today-btn glow" id="todayBtn">Сегодня</button>
+            </div>
+            <div class="action-group">
+                <input type="text" id="globalSearch" placeholder="🔍 Поиск задач...">
+                <select id="sortSelect">
+                    <option value="date">По дате</option>
+                    <option value="priority">По приоритету</option>
+                    <option value="status">По статусу</option>
+                </select>
+                <button class="add-btn glow" id="addTaskBtn">+ Задача</button>
+            </div>
         </div>
 
-        <div class="progress-section">
-            <div class="progress-stats">
-                <span id="percentDisplay">0%</span>
-                <span id="fractionDisplay">0 из 0</span>
-            </div>
-            <div class="progress-bar">
-                <div id="progressFill" style="width: 0%;"></div>
-            </div>
+        <!-- Контейнер просмотра -->
+        <div id="viewContainer" class="view-container glass"></div>
+
+        <!-- Экспорт/импорт -->
+        <div class="backup-bar">
+            <button class="btn-secondary" id="exportBtn">💾 Экспорт</button>
+            <label class="btn-secondary" for="importFile">📂 Импорт</label>
+            <input type="file" id="importFile" accept=".json" style="display:none">
         </div>
 
-        <div id="taskList"></div>
+        <div class="folder-info" id="folderInfo"></div>
     </main>
+
+    <!-- Модалки (обновлены) -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal glass-dark">
+            <h2>✨ Новая задача</h2>
+            <input type="text" id="taskInput" placeholder="Что сделать?">
+            <div class="form-group">
+                <label>Папка:</label>
+                <select id="taskFolderSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>Приоритет:</label>
+                <select id="taskPrioritySelect">
+                    <option value="low">Низкий</option>
+                    <option value="medium" selected>Средний</option>
+                    <option value="high">Высокий</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Дата:</label>
+                <input type="date" id="taskDateInput">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-cancel" id="taskModalCancel">Отмена</button>
+                <button class="modal-save" id="taskModalSave">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="moveModal">
+        <div class="modal glass-dark">
+            <h2>📅 Перенести задачу</h2>
+            <p id="moveTaskTitle" style="margin-bottom:12px;color:var(--text-muted);"></p>
+            <input type="date" id="moveDateInput">
+            <div class="modal-actions">
+                <button class="modal-cancel" id="moveModalCancel">Отмена</button>
+                <button class="modal-save" id="moveModalSave">Перенести</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="folderModal">
+        <div class="modal glass-dark">
+            <h2>📂 Папки</h2>
+            <div id="folderList"></div>
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="folderInput" placeholder="Новая папка" style="flex:1;">
+                <button class="btn glow" id="addFolderBtn2" style="flex-shrink:0;">+</button>
+            </div>
+            <div class="modal-actions" style="margin-top:16px;">
+                <button class="modal-cancel" id="folderModalClose">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="notesModal">
+        <div class="modal glass-dark notes-modal">
+            <h2>📝 Заметки</h2>
+            <div class="notes-list" id="notesList"></div>
+            <textarea id="noteInput" placeholder="Напишите заметку..."></textarea>
+            <div class="modal-actions">
+                <button class="modal-cancel" id="notesModalCancel">Закрыть</button>
+                <button class="modal-save" id="notesModalSave">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="doneModal">
+        <div class="modal glass-dark done-modal">
+            <h2>✅ Завершённые</h2>
+            <div id="doneList" class="done-list"></div>
+            <div class="modal-actions">
+                <button class="modal-cancel" id="doneModalClose">Закрыть</button>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
